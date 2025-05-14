@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  spark-master:
+    image: bitnami/spark
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=standalone
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_WEBUI_PORT=8081
+    ports:
+      - "7077:7077"
+      - "8081:8081"
+    volumes:
+      - /Users/joshitamishra/Documents/sorted/airflowSparkPOC/shared:/opt/shared  # Mount local directory if needed for scripts or data
+    networks:
+      - spark-network
+    command: /opt/bitnami/spark/sbin/start-master.sh && tail -f /dev/null
+
+  spark-worker:
+    image: bitnami/spark
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_WEBUI_PORT=8082  # Change worker UI port if needed
+    volumes:
+      - /Users/joshitamishra/Documents/sorted/airflowSparkPOC/apache-spark/scripts:/opt/shared  
+    networks:
+      - spark-network
+    command: /opt/bitnami/spark/sbin/start-worker.sh spark://spark-master:7077 && tail -f /dev/null
+
+networks:
+  spark-network:
+    driver: bridge
